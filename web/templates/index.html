@@ -1,0 +1,539 @@
+﻿<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>FocalServer</title>
+    <style>
+      :root {
+        --bg: #121212;
+        --panel: #1A1A1A;
+        --muted: #999999;
+        --text: #FFFFFF;
+        --border: #333333;
+        --accent: #FF8C00;
+        --bad: #ff6b6b;
+        --good: #6bffb8;
+        --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: var(--sans);
+        background: var(--bg);
+        color: var(--text);
+      }
+      header {
+        padding: 14px 18px;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+      header .title {
+        display: flex;
+        align-items: baseline;
+        gap: 10px;
+      }
+      header h1 { margin: 0; font-size: 16px; letter-spacing: .2px; color: #cfe0ff; }
+      header .sub { color: var(--muted); font-size: 12px; }
+      header .right { display: flex; gap: 10px; align-items: center; }
+      main {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 14px;
+        padding: 14px;
+      }
+      .card {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 12px 38px rgba(0,0,0,.45);
+      }
+      .card h2 {
+        margin: 0;
+        padding: 10px 12px;
+        font-size: 13px;
+        color: #cfe0ff;
+        border-bottom: 1px solid var(--border);
+        background: rgba(255,255,255,.01);
+      }
+      .card .body { padding: 12px; }
+      .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+      label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+      input, textarea, select {
+        width: 100%;
+        border-radius: 20px;
+        border: 1px solid var(--border);
+        background: rgba(0,0,0,.20);
+        color: var(--text);
+        padding: 10px 10px;
+        outline: none;
+      }
+      textarea { min-height: 110px; font-family: var(--mono); font-size: 12px; line-height: 1.35; }
+      .btns { display: flex; gap: 10px; align-items: center; }
+      button {
+        border: 1px solid var(--border);
+        background: rgba(255,140,0,.10);
+        color: var(--text);
+        padding: 10px 12px;
+        border-radius: 9999px;
+        cursor: pointer;
+      }
+      button:hover { border-color: rgba(255,140,0,.55); }
+      button.primary { background: rgba(255,140,0,.22); border-color: rgba(255,140,0,.55); }
+      button.ghost { background: transparent; }
+      .meta {
+        font-family: var(--mono);
+        font-size: 12px;
+        color: var(--muted);
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+      }
+      .pill {
+        padding: 3px 8px;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        background: rgba(255,255,255,.02);
+      }
+      .pill.good { border-color: rgba(107,255,184,.45); color: var(--good); }
+      .pill.bad { border-color: rgba(255,107,107,.45); color: var(--bad); }
+      pre {
+        margin: 0;
+        padding: 12px;
+        font-family: var(--mono);
+        font-size: 12px;
+        line-height: 1.35;
+        overflow: auto;
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+      .hint { color: var(--muted); font-size: 12px; line-height: 1.45; }
+      .term {
+        display: grid;
+        grid-template-rows: 1fr auto;
+        gap: 10px;
+      }
+      .term-out {
+        height: min(70vh, 620px);
+        overflow: auto;
+        white-space: pre-wrap;
+        word-break: break-word;
+        font-family: var(--mono);
+        font-size: 12px;
+        line-height: 1.35;
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        background: rgba(0,0,0,.18);
+        padding: 10px;
+      }
+      .term-in {
+        display: grid;
+        grid-template-columns: 72px 1fr auto;
+        gap: 8px;
+        align-items: center;
+      }
+      .term-in .prefix {
+        font-family: var(--mono);
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .term-in input {
+        font-family: var(--mono);
+        font-size: 12px;
+      }
+      .settings {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+      .settings .full { grid-column: 1 / -1; }
+      .settings .actions { display: flex; gap: 10px; align-items: center; }
+      .modal-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,.55);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 18px;
+        z-index: 50;
+      }
+      .modal {
+        width: min(720px, 95vw);
+        background: rgba(18, 26, 51, .98);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        box-shadow: 0 18px 60px rgba(0,0,0,.55);
+        overflow: hidden;
+      }
+      .modal .hd {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 12px;
+        border-bottom: 1px solid var(--border);
+        background: rgba(255,255,255,.02);
+      }
+      .modal .hd .t { font-size: 13px; color: #cfe0ff; }
+      .modal .bd { padding: 12px; }
+      .kbd { font-family: var(--mono); font-size: 11px; color: var(--muted); border: 1px solid var(--border); border-radius: 8px; padding: 2px 6px; background: rgba(0,0,0,.18); }
+      @media (max-width: 980px) {
+        main { grid-template-columns: 1fr; }
+        .settings { grid-template-columns: 1fr; }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="title">
+        <h1>FocalServer</h1>
+        <div class="sub">新一代微内核程序共享终端</div>
+      </div>
+      <div class="right">
+        <div class="meta">
+          <span id="meta-entry" class="pill">entry: -</span>
+          <span id="meta-exit" class="pill">exit: -</span>
+          <span id="meta-time" class="pill">time: -</span>
+        </div>
+        <button id="open-settings" class="ghost">设置</button>
+      </div>
+    </header>
+
+    <main>
+      <section class="card">
+        <h2>交互终端</h2>
+        <div class="body">
+          <div class="btns" style="margin-top: 2px">
+            <button id="run" class="primary">运行</button>
+            <button id="stop" class="ghost">停止</button>
+            <button id="clear" class="ghost">清空</button>
+            <span id="hint" class="hint"></span>
+          </div>
+
+          <div class="term" style="margin-top: 12px">
+            <div id="term-out" class="term-out"></div>
+            <div class="term-in">
+              <div class="prefix">stdin&gt;</div>
+              <input id="term-inp" type="text" placeholder="在这里输入，回车发送；输入 /stop 停止进程" />
+              <button id="term-send" class="ghost">发送</button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <div id="settings-backdrop" class="modal-backdrop" aria-hidden="true">
+      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="settings-title">
+        <div class="hd">
+          <div class="t" id="settings-title">设置</div>
+          <div class="btns">
+            <span class="kbd">Esc</span>
+            <button id="close-settings" class="ghost">关闭</button>
+          </div>
+        </div>
+        <div class="bd">
+          <div class="settings">
+            <div>
+              <label for="entry">入口（留空则自动选择）</label>
+              <select id="entry">
+                <option value="">(auto)</option>
+              </select>
+            </div>
+            <div>
+              <label for="timeout">超时（秒）</label>
+              <input id="timeout" type="number" min="1" max="120" step="1" value="10" />
+            </div>
+            <div>
+              <label for="python-mode">Python 环境</label>
+              <select id="python-mode">
+                <option value="server">内置（.venv）</option>
+                <option value="system">系统（电脑 Python）</option>
+              </select>
+            </div>
+            <div>
+              <label for="args">args（空格分隔）</label>
+              <input id="args" type="text" placeholder="例如：foo bar 123" />
+            </div>
+            <div class="full">
+              <label for="stderr-box">stderr（最近输出）</label>
+              <textarea id="stderr-box" spellcheck="false" readonly placeholder="这里会显示脚本的 stderr（只保留最近一段）"></textarea>
+            </div>
+            <div class="full hint">
+              <span id="settings-hint"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const $ = (id) => document.getElementById(id);
+      const metaEntry = $("meta-entry");
+      const metaExit = $("meta-exit");
+      const metaTime = $("meta-time");
+      const hint = $("hint");
+      const settingsHint = $("settings-hint");
+      const entrySel = $("entry");
+      const argsInput = $("args");
+      const timeoutInput = $("timeout");
+      const pythonModeSel = $("python-mode");
+
+      function setPill(el, text, cls) {
+        el.className = "pill" + (cls ? (" " + cls) : "");
+        el.textContent = text;
+      }
+
+      function parseArgs(s) {
+        // Minimal split: whitespace only. For complex quoting, pass args via API.
+        return (s || "").trim().split(/\s+/).filter(Boolean);
+      }
+
+      async function apiGet(url) {
+        const r = await fetch(url);
+        let j = null;
+        try {
+          j = await r.json();
+        } catch (_) {
+          // Non-JSON error (e.g. HTML 404). Fall back to text.
+          const t = await r.text();
+          if (!r.ok) throw new Error(`HTTP ${r.status}: ${t.slice(0, 200)}`);
+          throw new Error("Invalid JSON response");
+        }
+        if (!r.ok) throw new Error(j.detail || `HTTP ${r.status}`);
+        return j;
+      }
+
+      async function apiPost(url, body) {
+        const r = await fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+        const j = await r.json();
+        if (!r.ok) throw new Error(j.detail || "Request failed");
+        return j;
+      }
+
+      async function refreshStatus() {
+        const st = await apiGet("/api/status");
+        const preferred = st.preferred_entry || "-";
+        const msg = st.preferred_entry
+          ? `默认入口：<code>${preferred}</code>（可在“入口”下拉框里自由选择 <code>app/</code> 下任意 <code>.py</code> 文件）`
+          : `未检测到可运行文件，请在 <code>app/</code> 下放置任意 <code>.py</code> 文件。当前：<code>${st.app_dir}</code>`;
+        hint.innerHTML = msg;
+        settingsHint.innerHTML = msg;
+      }
+
+      async function refreshEntries() {
+        // Backward compatible: prefer /api/status (older servers may not have /api/entries)
+        const j = await apiGet("/api/status");
+        const current = entrySel.value;
+        let entries = [];
+        if (Array.isArray(j.available_entries)) {
+          entries = j.available_entries;
+        } else if (Array.isArray(j.entries)) {
+          entries = j.entries;
+        } else if (j.entries && typeof j.entries === "object") {
+          // Older schema: { entries: { "main.py": true, "app.py": false } }
+          entries = Object.keys(j.entries).filter((k) => j.entries[k]);
+        }
+
+        // Reset options (keep auto)
+        entrySel.innerHTML = "";
+        const autoOpt = document.createElement("option");
+        autoOpt.value = "";
+        autoOpt.textContent = "(auto)";
+        entrySel.appendChild(autoOpt);
+
+        entries.forEach((p) => {
+          const opt = document.createElement("option");
+          opt.value = p;
+          opt.textContent = p;
+          entrySel.appendChild(opt);
+        });
+
+        // Preserve selection if possible
+        if (current && entries.includes(current)) {
+          entrySel.value = current;
+        }
+      }
+
+      // 左侧栏已移除：不再在首页展示文件列表/源码查看
+      const termOut = $("term-out");
+      const termInp = $("term-inp");
+      const stderrBox = $("stderr-box");
+
+      function appendTerm(text) {
+        termOut.textContent += (text || "");
+        termOut.scrollTop = termOut.scrollHeight;
+      }
+
+      let stderrBuf = "";
+      function appendStderr(text) {
+        const next = stderrBuf + (text || "");
+        // keep recent 120k chars
+        stderrBuf = next.length > 120000 ? next.slice(next.length - 120000) : next;
+        if (stderrBox) stderrBox.value = stderrBuf;
+      }
+
+      let ws = null;
+      let wsStartedAt = null;
+
+      function wsUrl(path) {
+        const proto = location.protocol === "https:" ? "wss:" : "ws:";
+        return proto + "//" + location.host + path;
+      }
+
+      function wsEnsure() {
+        if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) return;
+        try { if (ws) ws.close(); } catch (_) {}
+        ws = new WebSocket(wsUrl("/ws/run"));
+        ws.addEventListener("message", (ev) => {
+          let msg = null;
+          try { msg = JSON.parse(ev.data); } catch (_) { return; }
+          const t = (msg.type || "").toLowerCase();
+          if (t === "started") {
+            wsStartedAt = Date.now();
+            setPill(metaEntry, "entry: " + (msg.used_entry || "-"));
+            setPill(metaExit, "exit: -");
+            setPill(metaTime, "time: -");
+            appendTerm(`\n[started] ${msg.used_entry || ""}\n`);
+            return;
+          }
+          if (t === "stdout") {
+            appendTerm(msg.data || "");
+            return;
+          }
+          if (t === "stderr") {
+            appendTerm(msg.data || "");
+            appendStderr(msg.data || "");
+            return;
+          }
+          if (t === "exit") {
+            const code = msg.exit_code;
+            const exitCls = (typeof code === "number" && code === 0) ? "good" : (typeof code === "number" ? "bad" : "");
+            setPill(metaExit, "exit: " + (code ?? "-"), exitCls);
+            if (wsStartedAt) setPill(metaTime, "time: " + (Date.now() - wsStartedAt) + "ms");
+            appendTerm(`\n[exit] ${code}\n`);
+            return;
+          }
+          if (t === "error") {
+            const err = msg.error || "unknown error";
+            appendTerm(`\n[error] ${err}\n`);
+            setPill(metaExit, "exit: error", "bad");
+            return;
+          }
+        });
+        ws.addEventListener("close", () => { ws = null; });
+      }
+
+      async function runInteractive() {
+        termOut.textContent = "";
+        setPill(metaEntry, "entry: -");
+        setPill(metaExit, "exit: -");
+        setPill(metaTime, "time: -");
+
+        wsEnsure();
+        if (ws.readyState !== WebSocket.OPEN) {
+          await new Promise((resolve) => ws.addEventListener("open", resolve, { once: true }));
+        }
+        wsStartedAt = Date.now();
+        ws.send(JSON.stringify({
+          type: "start",
+          entry: entrySel.value,
+          python_mode: pythonModeSel.value,
+          args: parseArgs(argsInput.value),
+          timeout_sec: Number(timeoutInput.value || 10),
+        }));
+      }
+
+      function sendStdin(text) {
+        wsEnsure();
+        if (!ws || ws.readyState !== WebSocket.OPEN) {
+          appendTerm("\n[error] websocket not connected\n");
+          return;
+        }
+        ws.send(JSON.stringify({ type: "stdin", data: text }));
+      }
+
+      function stopProc() {
+        wsEnsure();
+        if (!ws || ws.readyState !== WebSocket.OPEN) return;
+        ws.send(JSON.stringify({ type: "stop" }));
+      }
+
+      document.getElementById("run").addEventListener("click", async () => {
+        await refreshStatus();
+        await refreshEntries();
+        await runInteractive();
+        termInp.focus();
+      });
+      document.getElementById("clear").addEventListener("click", () => {
+        termOut.textContent = "";
+        stderrBuf = "";
+        if (stderrBox) stderrBox.value = "";
+      });
+      document.getElementById("stop").addEventListener("click", () => {
+        stopProc();
+      });
+      document.getElementById("term-send").addEventListener("click", () => {
+        const v = termInp.value || "";
+        termInp.value = "";
+        if (v.trim() === "/stop") {
+          stopProc();
+          return;
+        }
+        appendTerm("stdin> " + v + "\n");
+        sendStdin(v + "\n");
+      });
+      termInp.addEventListener("keydown", (ev) => {
+        if (ev.key === "Enter") {
+          ev.preventDefault();
+          document.getElementById("term-send").click();
+        }
+      });
+
+      (async function boot() {
+        try {
+          await refreshStatus();
+          await refreshEntries();
+          // Auto run on load
+          await runInteractive();
+          termInp.focus();
+        } catch (e) {
+          appendTerm(String(e) + "\n");
+          setPill(metaExit, "exit: error", "bad");
+        }
+      })();
+
+      // Settings modal
+      const backdrop = $("settings-backdrop");
+      const openBtn = $("open-settings");
+      const closeBtn = $("close-settings");
+      function openSettings() {
+        backdrop.style.display = "flex";
+        backdrop.setAttribute("aria-hidden", "false");
+      }
+      function closeSettings() {
+        backdrop.style.display = "none";
+        backdrop.setAttribute("aria-hidden", "true");
+      }
+      openBtn.addEventListener("click", openSettings);
+      closeBtn.addEventListener("click", closeSettings);
+      backdrop.addEventListener("click", (e) => {
+        if (e.target === backdrop) closeSettings();
+      });
+      window.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") closeSettings();
+      });
+    </script>
+  </body>
+</html>
+
+
