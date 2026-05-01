@@ -79,4 +79,4 @@ Write-Output "安装依赖：requirements.txt"
 & $venvPython -m pip install -r (Join-Path $root "requirements.txt")
 
 Write-Output "启动 SkillBottle Lite：http://127.0.0.1:8000/"
-& $venvPython -m uvicorn main:app --reload --port 8000
+& $venvPython -m uvicorn main:app --host 0.0.0.0 --port 8000 --reload
