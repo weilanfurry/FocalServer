@@ -134,14 +134,9 @@
       }
       .term-in {
         display: grid;
-        grid-template-columns: 72px 1fr auto;
+        grid-template-columns: 1fr auto;
         gap: 8px;
         align-items: center;
-      }
-      .term-in .prefix {
-        font-family: var(--mono);
-        color: var(--muted);
-        font-size: 12px;
       }
       .term-in input {
         font-family: var(--mono);
@@ -219,7 +214,6 @@
           <div class="term" style="margin-top: 12px">
             <div id="term-out" class="term-out"></div>
             <div class="term-in">
-              <div class="prefix">stdin&gt;</div>
               <input id="term-inp" type="text" placeholder="在这里输入，回车发送；输入 /stop 停止进程" />
               <button id="term-send" class="ghost">发送</button>
             </div>
@@ -489,7 +483,7 @@
           stopProc();
           return;
         }
-        appendTerm("stdin> " + v + "\n");
+        appendTerm(v + "\n");
         sendStdin(v + "\n");
       });
       termInp.addEventListener("keydown", (ev) => {

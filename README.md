@@ -32,7 +32,7 @@
 
 ### 交互输入（stdin）
 
-- 在终端底部 `stdin>` 输入内容并回车，会把该行发送给脚本的 stdin
+- 在终端底部输入框输入内容并回车，会把该行发送给脚本的 stdin
 - 适用于脚本内使用 `input()` / `sys.stdin.readline()` 等交互读取
 
 ### 设置（入口 / args / 超时 / Python 环境 / stderr）
@@ -87,4 +87,3 @@ $env:SKILLBOTTLE_DEBUG=1
 ### 运行时出现编码问题（UnicodeDecodeError）
 
 本项目已强制以 UTF-8 解码子进程输出并 `errors=replace`，通常不会再因为编码导致服务崩溃；如果你脚本自身按 GBK/其他编码输出，建议脚本侧统一使用 UTF-8。
-
